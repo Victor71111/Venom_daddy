@@ -1,94 +1,75 @@
 #!/usr/bin/env python3
-import sys
 import os
-from datetime import datetime
+import sys
+import subprocess
+import requests
+from colorama import Fore, init
 
-def bump_version(version_type="patch"):
-    """Bump version number"""
+init(autoreset=True)
+
+def update_from_github():
+    print(f"{Fore.CYAN}[*] Checking for updates from GitHub...")
+    
     try:
+        # Pull latest code
+        result = subprocess.run(["git", "pull", "origin", "main"], 
+                              capture_output=True, 
+                              text=True)
+        
+        if "Already up to date" in result.stdout:
+            print(f"{Fore.YELLOW}[!] Already up to date")
+            return False
+        elif result.returncode == 0:
+            print(f"{Fore.GREEN}[+] Update successful!")
+            print(result.stdout)
+            
+            # Update dependencies
+            print(f"{Fore.CYAN}[*] Updating dependencies...")
+            subprocess.run([sys.executable, "-m", "pip", "install", "-r", "requirements.txt"])
+            
+            return True
+        else:
+            print(f"{Fore.RED}[-] Update failed!")
+            print(result.stderr)
+            return False
+            
+    except Exception as e:
+        print(f"{Fore.RED}[-] Error: {e}")
+        return False
+
+def update_version_file():
+    """Update version.txt with latest"""
+    try:
+        # Read current version
         with open("version.txt", "r") as f:
             current = f.read().strip()
         
+        # Simple bump - you can make this smarter
         parts = current.split('.')
-        if len(parts) != 3:
-            parts = ["1", "0", "0"]
-        
-        major, minor, patch = int(parts[0]), int(parts[1]), int(parts[2])
-        
-        if version_type == "major":
-            major += 1
-            minor = 0
-            patch = 0
-        elif version_type == "minor":
-            minor += 1
-            patch = 0
-        else:  # patch
-            patch += 1
-        
-        new_version = f"{major}.{minor}.{patch}"
-        
+        if len(parts) == 3:
+            parts[2] = str(int(parts[2]) + 1)
+            new_version = '.'.join(parts)
+            
+            with open("version.txt", "w") as f:
+                f.write(new_version)
+            
+            print(f"{Fore.GREEN}[+] Version updated: {current} -> {new_version}")
+            return new_version
+    except:
+        # Create version file if doesn't exist
         with open("version.txt", "w") as f:
-            f.write(new_version)
-        
-        # Update changelog
-        update_changelog(new_version)
-        
-        print(f"✅ Version bumped: {current} -> {new_version}")
-        return new_version
-        
-    except Exception as e:
-        print(f"❌ Error: {e}")
-        return None
-
-def update_changelog(new_version):
-    """Update changelog.md"""
-    changelog_entry = f"""
-## v{new_version} - {datetime.now().strftime('%Y-%m-%d')}
-
-### Added
-- New features
-
-### Changed
-- Improvements
-
-### Fixed
-- Bug fixes
-
-### Security
-- Security updates
-"""
-    
-    if os.path.exists("changelog.md"):
-        with open("changelog.md", "r") as f:
-            content = f.read()
-        
-        # Insert at beginning
-        content = changelog_entry + "\n" + content
-    else:
-        content = changelog_entry
-    
-    with open("changelog.md", "w") as f:
-        f.write(content)
-    
-    print(f"📝 Changelog updated for v{new_version}")
+            f.write("1.0.0")
+        return "1.0.0"
 
 if __name__ == "__main__":
-    # USAGE means how to use the script from command line
-    if len(sys.argv) < 2:
-        print("""
-USAGE: python bump_version.py [type]
-
-Types:
-  patch  - Increment patch version (1.0.0 -> 1.0.1) [DEFAULT]
-  minor  - Increment minor version (1.0.0 -> 1.1.0)
-  major  - Increment major version (1.0.0 -> 2.0.0)
-
-Examples:
-  python bump_version.py patch
-  python bump_version.py minor
-  python bump_version.py major
-        """)
-        sys.exit(1)
+    print(f"{Fore.YELLOW}🔄 BGMI DDoS Bot Updater")
+    print(f"{Fore.CYAN}="*50)
     
-    version_type = sys.argv[1] if len(sys.argv) > 1 else "patch"
-    bump_version(version_type)
+    updated = update_from_github()
+    
+    if updated:
+        new_version = update_version_file()
+        print(f"\n{Fore.GREEN}✅ Update complete! Version: {new_version}")
+        print(f"{Fore.YELLOW}[!] Restart the bot to apply changes")
+    else:
+        print(f"\n{Fore.YELLOW}⚠️ No updates available")
