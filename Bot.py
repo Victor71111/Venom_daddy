@@ -20,13 +20,7 @@ ddos_engine = BGMIDDOS()
 # File-based attack system
 ATTACK_SCRIPT = "attack_runner.py"
 
-@bot.message_handler(commands=['start', 'help'])
-def start(message):
-    if message.from_user.id not in ADMIN_IDS:
-        bot.reply_to(message, "❌ Access denied, nigger!")
-        return
-
-    # Add this function for update checking
+# Update checking function
 def check_update():
     """Check if update is available"""
     try:
@@ -39,133 +33,12 @@ def check_update():
         return False, current_version
     except:
         return False, "1.0.0"
-        # Add these command handlers AFTER your existing commands
-@bot.message_handler(commands=['version'])
-def version_cmd(message):
+
+@bot.message_handler(commands=['start', 'help'])
+def start(message):
     if message.from_user.id not in ADMIN_IDS:
-        bot.reply_to(message, "❌ Fuck off, you ain't admin!")
+        bot.reply_to(message, "❌ Access denied, nigger!")
         return
-    
-    try:
-        with open("version.txt", "r") as f:
-            version = f.read().strip()
-        
-        # Read changelog if exists
-        changelog_text = "No changelog available."
-        if os.path.exists("changelog.md"):
-            with open("changelog.md", "r") as f:
-                changelog_text = f.read()
-        
-        # Get last 3 versions
-        lines = changelog_text.split('\n')
-        recent = []
-        for line in lines:
-            if line.startswith('## v'):
-                recent.append(line)
-                if len(recent) >= 3:
-                    break
-        
-        response = f"""
-📱 **BGMI DDoS Bot Version:** `{version}`
-
-**Recent Updates:**
-{chr(10).join(recent) if recent else 'No recent updates'}
-
-**Commands:**
-/update - Update to latest version
-/backup - Backup attack files
-/monitor - Check bot status
-/bump - Bump version number
-
-**Check for updates:** /update
-"""
-        bot.reply_to(message, response, parse_mode='Markdown')
-    except Exception as e:
-        bot.reply_to(message, f"Error: {str(e)}")
-
-@bot.message_handler(commands=['update'])
-def update_cmd(message):
-    if message.from_user.id not in ADMIN_IDS:
-        return
-    
-    bot.reply_to(message, "🔄 Checking for updates...")
-    
-    try:
-        # Run updater script
-        result = subprocess.run(["python", "updater.py"], 
-                              capture_output=True, 
-                              text=True,
-                              timeout=30)
-        
-        if result.returncode == 0:
-            bot.reply_to(message, f"✅ Update successful!\n\nOutput:\n```\n{result.stdout[:1000]}\n```", 
-                        parse_mode='Markdown')
-        else:
-            bot.reply_to(message, f"❌ Update failed!\n\nError:\n```\n{result.stderr[:1000]}\n```", 
-                        parse_mode='Markdown')
-    except subprocess.TimeoutExpired:
-        bot.reply_to(message, "⚠️ Update timed out. Check manually.")
-    except Exception as e:
-        bot.reply_to(message, f"Error: {str(e)}")
-
-@bot.message_handler(commands=['backup'])
-def backup_cmd(message):
-    if message.from_user.id not in ADMIN_IDS:
-        return
-    
-    try:
-        result = subprocess.run(["python", "backup_attacks.py"], 
-                              capture_output=True, 
-                              text=True)
-        
-        if result.returncode == 0:
-            bot.reply_to(message, f"✅ Backup created!\n\n{result.stdout}")
-            
-            # Send backup file if exists
-            if os.path.exists("backup_latest.zip"):
-                with open("backup_latest.zip", "rb") as f:
-                    bot.send_document(message.chat.id, f, caption="📦 Latest backup file")
-        else:
-            bot.reply_to(message, f"❌ Backup failed!\n\n{result.stderr}")
-    except Exception as e:
-        bot.reply_to(message, f"Error: {str(e)}")
-
-@bot.message_handler(commands=['monitor'])
-def monitor_cmd(message):
-    if message.from_user.id not in ADMIN_IDS:
-        return
-    
-    try:
-        result = subprocess.run(["python", "monitor.py"], 
-                              capture_output=True, 
-                              text=True)
-        
-        status = result.stdout if result.returncode == 0 else result.stderr
-        
-        bot.reply_to(message, f"📊 **Bot Monitor Status:**\n```\n{status[:1500]}\n```", 
-                    parse_mode='Markdown')
-    except Exception as e:
-        bot.reply_to(message, f"Error: {str(e)}")
-
-@bot.message_handler(commands=['bump'])
-def bump_cmd(message):
-    if message.from_user.id not in ADMIN_IDS:
-        return
-    
-    try:
-        # Get current version
-        with open("version.txt", "r") as f:
-            current = f.read().strip()
-        
-        # Ask for new version
-        bot.reply_to(message, f"Current version: {current}\n\nSend new version (format: X.Y.Z):")
-        
-        # You need to handle the response - this is simplified
-        # In real bot, use conversation handler
-        
-    except Exception as e:
-        bot.reply_to(message, f"Error: {str(e)}")
-
     
     help_text = """
 🟥 BGMI SERVER DDoS BOT 🟥
@@ -194,6 +67,12 @@ Example: /bgmi india 300
 📁 FILE SYSTEM:
 /upload - Upload target list
 /runfile <filename> - Execute attack file
+
+🔄 UPDATE SYSTEM:
+/version - Check current version
+/update - Update to latest version
+/backup - Backup attack files
+/monitor - Check bot status
     """
     bot.reply_to(message, help_text)
 
@@ -458,6 +337,251 @@ time.sleep({time})
     except Exception as e:
         bot.reply_to(message, f"Error: {str(e)}")
 
+# Add these command handlers AFTER your existing commands
+@bot.message_handler(commands=['version'])
+def version_cmd(message):
+    if message.from_user.id not in ADMIN_IDS:
+        bot.reply_to(message, "❌ Fuck off, you ain't admin!")
+        return
+    
+    try:
+        with open("version.txt", "r") as f:
+            version = f.read().strip()
+        
+        # Read changelog if exists
+        changelog_text = "No changelog available."
+        if os.path.exists("changelog.md"):
+            with open("changelog.md", "r") as f:
+                changelog_text = f.read()
+        
+        # Get last 3 versions
+        lines = changelog_text.split('\n')
+        recent = []
+        for line in lines:
+            if line.startswith('## v'):
+                recent.append(line)
+                if len(recent) >= 3:
+                    break
+        
+        response = f"""
+📱 **BGMI DDoS Bot Version:** `{version}`
+
+**Recent Updates:**
+{chr(10).join(recent) if recent else 'No recent updates'}
+
+**Commands:**
+/update - Update to latest version
+/backup - Backup attack files
+/monitor - Check bot status
+/bump - Bump version number
+
+**Check for updates:** /update
+"""
+        bot.reply_to(message, response, parse_mode='Markdown')
+    except Exception as e:
+        bot.reply_to(message, f"Error: {str(e)}")
+
+@bot.message_handler(commands=['update'])
+def update_cmd(message):
+    if message.from_user.id not in ADMIN_IDS:
+        return
+    
+    bot.reply_to(message, "🔄 Checking for updates...")
+    
+    try:
+        # Run updater script
+        result = subprocess.run(["python", "updater.py"], 
+                              capture_output=True, 
+                              text=True,
+                              timeout=30)
+        
+        if result.returncode == 0:
+            bot.reply_to(message, f"✅ Update successful!\n\nOutput:\n```\n{result.stdout[:1000]}\n```", 
+                        parse_mode='Markdown')
+        else:
+            bot.reply_to(message, f"❌ Update failed!\n\nError:\n```\n{result.stderr[:1000]}\n```", 
+                        parse_mode='Markdown')
+    except subprocess.TimeoutExpired:
+        bot.reply_to(message, "⚠️ Update timed out. Check manually.")
+    except Exception as e:
+        bot.reply_to(message, f"Error: {str(e)}")
+
+@bot.message_handler(commands=['backup'])
+def backup_cmd(message):
+    if message.from_user.id not in ADMIN_IDS:
+        return
+    
+    try:
+        result = subprocess.run(["python", "backup_attacks.py"], 
+                              capture_output=True, 
+                              text=True)
+        
+        if result.returncode == 0:
+            bot.reply_to(message, f"✅ Backup created!\n\n{result.stdout}")
+            
+            # Send backup file if exists
+            if os.path.exists("backup_latest.zip"):
+                with open("backup_latest.zip", "rb") as f:
+                    bot.send_document(message.chat.id, f, caption="📦 Latest backup file")
+        else:
+            bot.reply_to(message, f"❌ Backup failed!\n\n{result.stderr}")
+    except Exception as e:
+        bot.reply_to(message, f"Error: {str(e)}")
+
+@bot.message_handler(commands=['monitor'])
+def monitor_cmd(message):
+    if message.from_user.id not in ADMIN_IDS:
+        return
+    
+    try:
+        result = subprocess.run(["python", "monitor.py"], 
+                              capture_output=True, 
+                              text=True)
+        
+        status = result.stdout if result.returncode == 0 else result.stderr
+        
+        bot.reply_to(message, f"📊 **Bot Monitor Status:**\n```\n{status[:1500]}\n```", 
+                    parse_mode='Markdown')
+    except Exception as e:
+        bot.reply_to(message, f"Error: {str(e)}")
+
+@bot.message_handler(commands=['bump'])
+def bump_cmd(message):
+    if message.from_user.id not in ADMIN_IDS:
+        return
+    
+    try:
+        # Get current version
+        with open("version.txt", "r") as f:
+            current = f.read().strip()
+        
+        # Ask for new version
+        bot.reply_to(message, f"Current version: {current}\n\nSend new version (format: X.Y.Z):")
+        
+        # You need to handle the response - this is simplified
+        # In real bot, use conversation handler
+        
+    except Exception as e:
+        bot.reply_to(message, f"Error: {str(e)}")
+
+# Enhanced check_update function for auto-updates
+def enhanced_check_update():
+    """Enhanced update check with actual GitHub API"""
+    try:
+        # Get current version
+        with open("version.txt", "r") as f:
+            current_version = f.read().strip()
+        
+        # Try to get latest version from GitHub API
+        import requests
+        try:
+            response = requests.get(
+                "https://api.github.com/repos/YOUR_USERNAME/YOUR_REPO/releases/latest",
+                timeout=5
+            )
+            
+            if response.status_code == 200:
+                latest_version = response.json()['tag_name']
+                
+                # Simple version comparison (you might need a better method)
+                if latest_version != current_version:
+                    return True, latest_version
+            
+            return False, current_version
+        except requests.RequestException:
+            # Fallback to local check
+            return False, current_version
+            
+    except Exception as e:
+        print(f"[UPDATE] Error checking updates: {e}")
+        return False, "unknown"
+
 if __name__ == "__main__":
     print("🤖 BGMI DDoS Bot Started...")
-    bot.polling(none_stop=True)
+    
+    # Auto-update check variables
+    last_update_check = time.time()
+    UPDATE_INTERVAL = 86400  # 24 hours in seconds
+    
+    # Load config from file if exists
+    AUTO_UPDATE = True
+    NOTIFY_UPDATES = True
+    
+    config_file = "config.json"
+    if os.path.exists(config_file):
+        try:
+            with open(config_file, 'r') as f:
+                config = json.load(f)
+                AUTO_UPDATE = config.get('auto_update', True)
+                NOTIFY_UPDATES = config.get('notify_updates', True)
+                # Update ADMIN_IDS from config if present
+                if 'admin_ids' in config:
+                    ADMIN_IDS.extend(config['admin_ids'])
+                    ADMIN_IDS = list(set(ADMIN_IDS))  # Remove duplicates
+        except:
+            pass
+    
+    # Start bot in separate thread for monitoring
+    def bot_polling():
+        print("[+] Bot polling started...")
+        try:
+            bot.polling(none_stop=True, interval=0, timeout=20)
+        except Exception as e:
+            print(f"[!] Bot polling error: {e}")
+    
+    bot_thread = threading.Thread(target=bot_polling)
+    bot_thread.daemon = True
+    bot_thread.start()
+    
+    print("[+] Bot started. Monitoring for updates...")
+    
+    # Main monitoring loop
+    monitor_counter = 0
+    while True:
+        current_time = time.time()
+        
+        # Check for updates periodically
+        if AUTO_UPDATE and (current_time - last_update_check > UPDATE_INTERVAL):
+            try:
+                update_needed, new_version = enhanced_check_update()
+                if update_needed:
+                    print(f"[UPDATE] New version available: {new_version}")
+                    
+                    if NOTIFY_UPDATES:
+                        # Notify all admins
+                        for admin_id in ADMIN_IDS:
+                            try:
+                                bot.send_message(
+                                    admin_id,
+                                    f"📢 Update available!\nNew version: {new_version}\nUse /update to install"
+                                )
+                                print(f"[UPDATE] Notification sent to admin {admin_id}")
+                            except Exception as e:
+                                print(f"[UPDATE] Failed to notify admin {admin_id}: {e}")
+                
+                last_update_check = current_time
+            except Exception as e:
+                print(f"[UPDATE] Error in update check: {e}")
+        
+        # Run monitor periodically (every hour)
+        monitor_counter += 1
+        if monitor_counter >= 3600:  # Every 3600 seconds = 1 hour
+            try:
+                print("[MONITOR] Running hourly check...")
+                result = subprocess.run([sys.executable, "monitor.py"], 
+                                      capture_output=True, 
+                                      text=True,
+                                      timeout=60)
+                if result.returncode == 0:
+                    print(f"[MONITOR] Success: {result.stdout[:200]}")
+                else:
+                    print(f"[MONITOR] Failed: {result.stderr[:200]}")
+                monitor_counter = 0
+            except Exception as e:
+                print(f"[MONITOR] Error: {e}")
+        
+        # Print status every 5 minutes (optional)
+        if int(current_time) % 300 == 0:
+            print(f"[STATUS] Bot running... Last update check: {time.ctime(last_update_check)}")
+        
+        time.sleep(60)  # Check every minute
