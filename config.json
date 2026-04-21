@@ -1,6 +1,6 @@
 {
-    "telegram_token": "YOUR_BOT_TOKEN",
-    "admin_ids": [123456789],
+    "telegram_token": "8728086628:AAGacSuGZtVQtBmkwySyYcUlLkT5mGyvzns",
+    "admin_ids": [6911928761],
     "max_threads": 1000,
     "auto_update": true,
     "update_check_interval": 86400,
