@@ -1,4 +1,26 @@
 #!/usr/bin/env python3
+def main():
+    # ADD THIS AT THE VERY START
+    def check_updates_on_start():
+        try:
+            update_needed, new_version = check_update()
+            if update_needed:
+                print(f"\n{'='*50}")
+                print(f"[!] UPDATE AVAILABLE: {new_version}")
+                print(f"[!] Run: python3 updater.py")
+                print(f"[!] Or use /update in Telegram")
+                print(f"{'='*50}\n")
+        except:
+            pass
+    
+    # Call it
+    check_updates_on_start()
+    
+    # Rest of your existing code...
+    print_banner()
+    setup_config()
+    # ... etc
+
 import os
 import sys
 import json
