@@ -1,3 +1,8 @@
+# Add these imports at the top
+import time
+import subprocess
+import json
+from datetime import datetime
 import telebot
 import threading
 import json
@@ -20,6 +25,147 @@ def start(message):
     if message.from_user.id not in ADMIN_IDS:
         bot.reply_to(message, "❌ Access denied, nigger!")
         return
+
+    # Add this function for update checking
+def check_update():
+    """Check if update is available"""
+    try:
+        # Get current version
+        with open("version.txt", "r") as f:
+            current_version = f.read().strip()
+        
+        # Get latest version from GitHub (or version.txt)
+        # For now, just return current
+        return False, current_version
+    except:
+        return False, "1.0.0"
+        # Add these command handlers AFTER your existing commands
+@bot.message_handler(commands=['version'])
+def version_cmd(message):
+    if message.from_user.id not in ADMIN_IDS:
+        bot.reply_to(message, "❌ Fuck off, you ain't admin!")
+        return
+    
+    try:
+        with open("version.txt", "r") as f:
+            version = f.read().strip()
+        
+        # Read changelog if exists
+        changelog_text = "No changelog available."
+        if os.path.exists("changelog.md"):
+            with open("changelog.md", "r") as f:
+                changelog_text = f.read()
+        
+        # Get last 3 versions
+        lines = changelog_text.split('\n')
+        recent = []
+        for line in lines:
+            if line.startswith('## v'):
+                recent.append(line)
+                if len(recent) >= 3:
+                    break
+        
+        response = f"""
+📱 **BGMI DDoS Bot Version:** `{version}`
+
+**Recent Updates:**
+{chr(10).join(recent) if recent else 'No recent updates'}
+
+**Commands:**
+/update - Update to latest version
+/backup - Backup attack files
+/monitor - Check bot status
+/bump - Bump version number
+
+**Check for updates:** /update
+"""
+        bot.reply_to(message, response, parse_mode='Markdown')
+    except Exception as e:
+        bot.reply_to(message, f"Error: {str(e)}")
+
+@bot.message_handler(commands=['update'])
+def update_cmd(message):
+    if message.from_user.id not in ADMIN_IDS:
+        return
+    
+    bot.reply_to(message, "🔄 Checking for updates...")
+    
+    try:
+        # Run updater script
+        result = subprocess.run(["python", "updater.py"], 
+                              capture_output=True, 
+                              text=True,
+                              timeout=30)
+        
+        if result.returncode == 0:
+            bot.reply_to(message, f"✅ Update successful!\n\nOutput:\n```\n{result.stdout[:1000]}\n```", 
+                        parse_mode='Markdown')
+        else:
+            bot.reply_to(message, f"❌ Update failed!\n\nError:\n```\n{result.stderr[:1000]}\n```", 
+                        parse_mode='Markdown')
+    except subprocess.TimeoutExpired:
+        bot.reply_to(message, "⚠️ Update timed out. Check manually.")
+    except Exception as e:
+        bot.reply_to(message, f"Error: {str(e)}")
+
+@bot.message_handler(commands=['backup'])
+def backup_cmd(message):
+    if message.from_user.id not in ADMIN_IDS:
+        return
+    
+    try:
+        result = subprocess.run(["python", "backup_attacks.py"], 
+                              capture_output=True, 
+                              text=True)
+        
+        if result.returncode == 0:
+            bot.reply_to(message, f"✅ Backup created!\n\n{result.stdout}")
+            
+            # Send backup file if exists
+            if os.path.exists("backup_latest.zip"):
+                with open("backup_latest.zip", "rb") as f:
+                    bot.send_document(message.chat.id, f, caption="📦 Latest backup file")
+        else:
+            bot.reply_to(message, f"❌ Backup failed!\n\n{result.stderr}")
+    except Exception as e:
+        bot.reply_to(message, f"Error: {str(e)}")
+
+@bot.message_handler(commands=['monitor'])
+def monitor_cmd(message):
+    if message.from_user.id not in ADMIN_IDS:
+        return
+    
+    try:
+        result = subprocess.run(["python", "monitor.py"], 
+                              capture_output=True, 
+                              text=True)
+        
+        status = result.stdout if result.returncode == 0 else result.stderr
+        
+        bot.reply_to(message, f"📊 **Bot Monitor Status:**\n```\n{status[:1500]}\n```", 
+                    parse_mode='Markdown')
+    except Exception as e:
+        bot.reply_to(message, f"Error: {str(e)}")
+
+@bot.message_handler(commands=['bump'])
+def bump_cmd(message):
+    if message.from_user.id not in ADMIN_IDS:
+        return
+    
+    try:
+        # Get current version
+        with open("version.txt", "r") as f:
+            current = f.read().strip()
+        
+        # Ask for new version
+        bot.reply_to(message, f"Current version: {current}\n\nSend new version (format: X.Y.Z):")
+        
+        # You need to handle the response - this is simplified
+        # In real bot, use conversation handler
+        
+    except Exception as e:
+        bot.reply_to(message, f"Error: {str(e)}")
+
     
     help_text = """
 🟥 BGMI SERVER DDoS BOT 🟥
