@@ -11,8 +11,8 @@ import subprocess
 import os
 from ddos import BGMIDDOS
 
-TOKEN = "YOUR_TELEGRAM_BOT_TOKEN"
-ADMIN_IDS = [YOUR_TELEGRAM_ID]
+TOKEN = "8728086628:AAGacSuGZtVQtBmkwySyYcUlLkT5mGyvzns"
+ADMIN_IDS = [6911928761]
 
 bot = telebot.TeleBot(TOKEN)
 ddos_engine = BGMIDDOS()
