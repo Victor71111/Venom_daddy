@@ -1,11 +1,10 @@
 {
-    "telegram_token": "YOUR_BOT_TOKEN_HERE",
-    "admin_ids": [
-        123456789
-    ],
+    "telegram_token": "YOUR_BOT_TOKEN",
+    "admin_ids": [123456789],
     "max_threads": 1000,
-    "auto_start": false,
-    "log_attacks": true,
-    "proxy_enabled": false,
-    "proxy_list": []
+    "auto_update": true,
+    "update_check_interval": 86400,
+    "notify_updates": true,
+    "backup_interval": 3600,
+    "monitor_enabled": true
 }
